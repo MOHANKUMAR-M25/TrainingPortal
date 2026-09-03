@@ -1,0 +1,224 @@
+// ============================================================
+// Main stylesheet — Sass + Tailwind CSS
+// ============================================================
+
+// ---------- Sass modules ----------
+@use "sass:color";
+
+// ---------- Sass variables ----------
+$german-black: #0f0f0f;
+$german-red: #dd0000;
+$german-gold: #ffcc00;
+$transition-base: all 0.3s ease;
+
+// ---------- Tailwind directives ----------
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// ---------- Base ----------
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    // iOS Safari enlarges text in landscape without this.
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    @apply font-body text-slate-700 bg-white antialiased;
+    // A single wide element (table, long word, absolutely-positioned badge)
+    // must never make the whole page pan sideways on a phone.
+    overflow-x: hidden;
+    // Removes the grey flash Android Chrome paints over tapped elements.
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display text-slate-900;
+    // Long German compound words would otherwise overflow narrow screens.
+    overflow-wrap: break-word;
+  }
+
+  // iOS Safari zooms the viewport when a focused input's font-size is under
+  // 16px. Keeping form controls at 16px on small screens prevents that jump.
+  @media (max-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
+  }
+
+  // Honour "reduce motion" — the fade-in-up entrances and smooth scrolling
+  // are decorative.
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+// ---------- Reusable components (Sass nesting + Tailwind @apply) ----------
+@layer components {
+  .container-site {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+    // Keeps content off the rounded corners / notch in iOS landscape.
+    // Values mirror the px-4 / sm:px-6 / lg:px-8 utilities above.
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+
+    @media (min-width: 640px) {
+      padding-left: max(1.5rem, env(safe-area-inset-left));
+      padding-right: max(1.5rem, env(safe-area-inset-right));
+    }
+
+    @media (min-width: 1024px) {
+      padding-left: max(2rem, env(safe-area-inset-left));
+      padding-right: max(2rem, env(safe-area-inset-right));
+    }
+  }
+
+  .section-title {
+    @apply text-3xl sm:text-4xl font-bold tracking-tight;
+
+    span {
+      color: $german-red;
+    }
+  }
+
+  .section-subtitle {
+    @apply mt-3 text-base sm:text-lg text-slate-500 max-w-2xl;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2;
+    // Minimum comfortable touch target on iOS/Android.
+    min-height: 44px;
+    // Stops a double-tap from being read as a zoom gesture on iOS.
+    touch-action: manipulation;
+
+    &.btn-primary {
+      background-color: $german-red;
+      @apply text-white shadow-lg shadow-red-200 focus:ring-red-400;
+
+      &:hover {
+        background-color: color.adjust($german-red, $lightness: -8%);
+      }
+    }
+
+    &.btn-gold {
+      background-color: $german-gold;
+      color: $german-black;
+      @apply shadow-lg shadow-yellow-200 focus:ring-yellow-400;
+
+      &:hover {
+        background-color: color.adjust($german-gold, $lightness: -8%);
+      }
+    }
+
+    &.btn-outline {
+      @apply border-2 border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white focus:ring-slate-500;
+    }
+
+    // Lift only on devices that really hover. On a touchscreen the hover
+    // state sticks after a tap, leaving the button visibly shifted.
+    @media (hover: hover) {
+      &.btn-primary:hover,
+      &.btn-gold:hover {
+        @apply -translate-y-0.5;
+      }
+    }
+
+    // Tactile press feedback for touch.
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+
+  .card {
+    @apply rounded-2xl bg-white p-5 shadow-md ring-1 ring-slate-100 sm:p-6;
+    transition: $transition-base;
+
+    // Same reasoning as .btn — no sticky hover lift on touch devices.
+    @media (hover: hover) {
+      &:hover {
+        @apply shadow-xl -translate-y-1;
+      }
+    }
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider;
+
+    &.badge-level {
+      background-color: rgba($german-gold, 0.25);
+      color: color.adjust($german-gold, $lightness: -30%);
+    }
+  }
+
+  .input-field {
+    @apply w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition;
+    min-height: 44px;
+    // iOS renders unstyled selects/inputs with its own chrome otherwise.
+    -webkit-appearance: none;
+    appearance: none;
+
+    &:focus {
+      @apply bg-white ring-2;
+      border-color: $german-red;
+      --tw-ring-color: #{rgba($german-red, 0.15)};
+    }
+  }
+
+  // `appearance: none` above strips the native dropdown arrow, so draw one.
+  select.input-field {
+    padding-right: 2.5rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.1rem;
+  }
+
+  .nav-link {
+    @apply text-sm font-medium text-slate-600 transition-colors;
+
+    &:hover,
+    &.active {
+      color: $german-red;
+    }
+  }
+
+  // German flag accent stripe
+  .flag-stripe {
+    height: 6px;
+    background: linear-gradient(
+      to right,
+      $german-black 0%,
+      $german-black 33.3%,
+      $german-red 33.3%,
+      $german-red 66.6%,
+      $german-gold 66.6%,
+      $german-gold 100%
+    );
+  }
+
+  .star {
+    color: $german-gold;
+  }
+
+  .star-muted {
+    @apply text-slate-300;
+  }
+}
